@@ -9,11 +9,20 @@ from torchreid.reid.utils import load_pretrained_weights
 from scipy.spatial.distance import cosine
 
 # Configuration
-SIMILARITY_THRESHOLD = 0.3  # 값 ↓ → 더 엄격한 매칭
-FEATURE_UPDATE_ALPHA = 0.7  # 0.5~0.9 권장 (높을수록 기존 특징 유지) 조도 변화가 심한 환경에서는 0.5 정도로 설정
-MAX_INACTIVE_FRAMES = 300    # 해당 프레임 동안 미검시 시 ID 삭제
+# 값 ↓ → 더 엄격한 매칭 # Lower = stricter matching
+SIMILARITY_THRESHOLD = 0.3  
+
+# 0.5~0.9 권장 (높을수록 기존 특징 유지) 조도 변화가 심한 환경에서는 0.5 정도로 설정 
+# Weight for existing features (0.5~0.9 recommended)
+# 0.5 recommended for Environment with severe changes in illumination
+FEATURE_UPDATE_ALPHA = 0.7  
+
+# 해당 프레임 동안 미검시 시 ID 삭제
+# Delete ID if undetected during this value  
+MAX_INACTIVE_FRAMES = 300    
 
 # 모델 초기화
+# init model
 model = YOLO("yolo11n-seg.pt")
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 reid_model = build_model(name='osnet_x1_0', num_classes=1000, pretrained=True)
@@ -21,6 +30,7 @@ load_pretrained_weights(reid_model, '~/.cache/torch/checkpoints/osnet_x1_0_image
 reid_model = reid_model.to(device).eval()
 
 # 전처리 파이프라인
+# preprocess pipeline
 preprocess = transforms.Compose([
     transforms.ToPILImage(),
     transforms.Resize((256, 128)),
@@ -29,6 +39,7 @@ preprocess = transforms.Compose([
 ])
 
 # ID 관리 시스템
+# ID Management
 class IDManager:
     def __init__(self):
         self.next_id = 1
